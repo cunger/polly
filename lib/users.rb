@@ -47,8 +47,9 @@ module Polly
     end
 
     def save!(users)
-      users.map { |user| { 'name': user.name, 'password': user.password } }
-      File.write @file, users.to_json
+      json = users.map { |user| { 'name' => user.name, 'password' => user.password } }
+                  .to_json
+      File.write @file, json
     end
   end
 end

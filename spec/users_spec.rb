@@ -12,13 +12,16 @@ describe Polly::Users do
     restore_users_json!
   end
 
-  it 'can authenticate the test user' do
-    @users.authenticate! 'elaine', 'marley'
+  it 'does nothing' do
   end
 
   it 'can fetch the test user' do
     elaine = @users.fetch 'elaine'
     expect(elaine.name).to eq 'elaine'
+  end
+
+  it 'can authenticate the test user' do
+    @users.authenticate! 'elaine', 'marley'
   end
 
   it 'can add and authenticate a new user' do
