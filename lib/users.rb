@@ -1,41 +1,29 @@
-require 'sysrandom/securerandom'
-require 'bcrypt'
+require 'json'
+require_relative 'user'
 
 module Polly
   class Users
-    def fetch
-      # go through all users and pick the one with a matching name
-      GuestUser.new
-    end
-  end
-
-  class User
-    attr_reader :id, :name
-
-    def initialize(name, password)
-      @id = generate_id
-      @name = name
-      @password_hash = hash password
+    def initialize
+      @users = load_users
     end
 
-    def authenticate(password)
-      @password_hash == password
+    def <<(user)
+      @users << user
+    end
+
+    def fetch(username)
+      @users.each do |user| 
+        return user if user.name == username
+      end
+      Polly::GuestUser.new
     end
 
     private
 
-    def generate_id
-      SecureRandom.uuid
-    end
-
-    def hash(password)
-      BCrypt::Password.create(password)
-    end
-  end
-
-  class GuestUser
-    def name
-      'guest'
+    def load_users
+      file = File.expand_path(File.dirname(__FILE__)) + '/data/users.json'
+      json = JSON.parse File.read(file)
+      json.map { |info| Polly::User.new(info['name'], info['password']) }
     end
   end
 end

@@ -1,6 +1,8 @@
+require 'dotenv'
+Dotenv.load
+
 require 'sinatra'
 require 'sinatra/reloader' if development?
-
 require 'sysrandom/securerandom'
 
 require_relative 'lib/users'
@@ -11,7 +13,7 @@ configure do
 end
 
 before do
-  @user = Polly::Users.new.fetch
+  @user = Polly::Users.new.fetch session[:user]
 end
 
 #### Routes ####

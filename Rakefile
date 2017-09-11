@@ -1,12 +1,13 @@
 require 'sysrandom/securerandom'
 require 'rspec/core/rake_task'
+require 'dotenv/tasks'
 
 desc 'Run tests'
-RSpec::Core::RakeTask.new(:spec)
+RSpec::Core::RakeTask.new(:test)
 
 desc 'Start application'
-task :rackup do
-  system({ 'SESSION_SECRET' => SecureRandom.hex(64) }, 'rackup')
+task rackup: :dotenv do
+  system('rackup')
 end
 
 task :default => ['rackup']
