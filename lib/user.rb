@@ -2,25 +2,25 @@ require 'bcrypt'
 
 module Polly
   class User
-    attr_reader :name
+    attr_reader :name, :password
 
     def initialize(name, password)
       @name = name
-      @hashed_password = hash password
+      @password = password
     end
 
-    def valid_password?(string)
-      @hashed_password == string
+    def self.create(name, password)
+      self.new(name, BCrypt::Password.create(password))
     end
 
-    private
+    def self.load(name, password)
+      self.new(name, BCrypt::Password.new(password))
+    end
 
-    def hash(password)
-      if password.is_a? BCrypt::Password
-        password
-      else
-        BCrypt::Password.create password
-      end
+    class InvalidPassword < RuntimeError ; end
+
+    def authenticate!(alleged_password)
+      raise InvalidPassword unless @password == alleged_password
     end
   end
 
