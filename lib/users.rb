@@ -1,6 +1,8 @@
 require 'json'
 require_relative 'user'
 
+ENV['USERS_FILE'] = File.expand_path(File.dirname(__FILE__)) + '/data/users.json'
+
 module Polly
   class Users
     def initialize
@@ -12,7 +14,7 @@ module Polly
     end
 
     def fetch(username)
-      @users.each do |user| 
+      @users.each do |user|
         return user if user.name == username
       end
       Polly::GuestUser.new
@@ -21,8 +23,7 @@ module Polly
     private
 
     def load_users
-      file = File.expand_path(File.dirname(__FILE__)) + '/data/users.json'
-      json = JSON.parse File.read(file)
+      json = JSON.parse File.read(ENV['USERS_FILE'])
       json.map { |info| Polly::User.new(info['name'], info['password']) }
     end
   end

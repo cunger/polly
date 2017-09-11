@@ -11,6 +11,16 @@ module RSpecMixin
   def app
     Sinatra::Application
   end
+
+  private
+
+  def session
+    last_request.env['rack.session']
+  end
+
+  def as_user(name)
+    { 'rack.session' => { :user => name } }
+  end
 end
 
 RSpec.configure do |config|
