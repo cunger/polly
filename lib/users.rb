@@ -12,7 +12,12 @@ module Polly
       raise NameAlreadyTaken if already_taken? username
 
       @users << Polly::User.create(username, password)
-      @store.save! @users
+      save!
+    end
+
+    def delete!(username)
+      @users.delete_if { |user| user.name == username }
+      save!
     end
 
     def authenticate!(username, password)
@@ -23,7 +28,7 @@ module Polly
       @users.each do |user|
         return user if user.name == username
       end
-      block_given? ? yield : raise(UserNotFound)
+      block_given? ? yield : raise(UserNotFound, username)
     end
 
     class UserNotFound < RuntimeError ; end
@@ -33,6 +38,10 @@ module Polly
 
     def already_taken?(username)
       @users.any? { |user| user.name == username }
+    end
+
+    def save!
+      @store.save! @users
     end
   end
 

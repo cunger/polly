@@ -23,9 +23,13 @@ end
 
 #### Routes ####
 
+# Landing page
+
 get '/' do
   haml :index
 end
+
+# Sign in
 
 get '/sign-in' do
   haml :signin
@@ -42,10 +46,12 @@ post '/sign-in' do
 
   rescue Polly::Users::UserNotFound
     deny :signin, 'Cannot find a user with this name.'
-  rescue Polly::User::InvalidPassword
+  rescue Polly::User::AuthenticationFailure
     deny :signin, 'The password you entered is incorrect.'
   end
 end
+
+# Sign up
 
 get '/sign-up' do
   haml :signup
@@ -65,6 +71,49 @@ post '/sign-up' do
   end
 end
 
+# User account
+
+get '/user-account' do
+  restrict_to_signed_in_user
+
+  haml :useraccount
+end
+
+post '/user-account/reset-password' do
+  begin
+    username     = params['username']
+    old_password = params['old_password']
+    new_password = params['new_password']
+
+    @users.authenticate! username, old_password
+
+    if new_password != params['new_password_repeated']
+      render_with_message :useraccount, "Your entries for the new password don't match."
+    end
+
+    @users.fetch(username).update_password(new_password)
+    render_with_message :useraccount, 'Successfully updated password.'
+
+  rescue RuntimeError
+    deny :useraccount, 'Authentication failed.'
+  end
+end
+
+post '/user-account/delete' do
+  begin
+    username = params['username']
+    password = params['password']
+
+    @users.authenticate! username, password
+    @users.delete! username
+
+    redirect_with_message '/', "Delete user account for '#{username}'."
+
+  rescue RuntimeError
+    deny :useraccount, 'Authentication failed.'
+  end
+end
+
 #### Helpers ####
 
 helpers do
@@ -75,7 +124,11 @@ end
 
 private
 
-def deny(template, message)
+def restrict_to_signed_in_user
+  deny 'You need to be signed in to do this.' unless @user.signed_in?
+end
+
+def deny(template=:index, message)
   session[:flash] = message
   halt 403, haml(template)
 end
@@ -88,4 +141,9 @@ end
 def redirect_with_message(path, message)
   session[:flash] = message
   redirect path
+end
+
+def render_with_message(template, message)
+  session[:flash] = message
+  haml template
 end

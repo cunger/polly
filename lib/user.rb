@@ -17,16 +17,29 @@ module Polly
       self.new(name, BCrypt::Password.new(password))
     end
 
-    class InvalidPassword < RuntimeError ; end
+    def signed_in?
+      true
+    end
 
     def authenticate!(alleged_password)
-      raise InvalidPassword unless @password == alleged_password
+      raise AuthenticationFailure unless @password == alleged_password
+      true
     end
+
+    def update_password(new_password)
+      @password = BCrypt::Password.create new_password
+    end
+
+    class AuthenticationFailure < RuntimeError ; end
   end
 
   class GuestUser
     def name
       'guest'
+    end
+
+    def signed_in?
+      false
     end
   end
 end

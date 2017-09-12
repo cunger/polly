@@ -12,9 +12,6 @@ describe Polly::Users do
     restore_users_json!
   end
 
-  it 'does nothing' do
-  end
-
   it 'can fetch the test user' do
     elaine = @users.fetch 'elaine'
     expect(elaine.name).to eq 'elaine'
@@ -28,10 +25,29 @@ describe Polly::Users do
     @users.add! 'herman', 'toothrot'
     @users.authenticate! 'herman', 'toothrot'
   end
+
+  it 'can delete a user' do
+    @users.delete! 'elaine'
+    expect { @users.fetch('elaine') }.to raise_error(Polly::Users::UserNotFound)
+  end
 end
 
 describe Polly::User do
+  before do
+    @user = Polly::User.create('guybrush', 'threepwood')
+  end
+
+  it 'is signed in' do
+    expect @user.signed_in?
+  end
+
+  it 'needs the correct password to authenticate' do
+    expect @user.authenticate!('threepwood')
+  end
 end
 
 describe Polly::GuestUser do
+  it 'is not signed in' do
+    expect(Polly::GuestUser.new.signed_in?).to be_falsey
+  end
 end

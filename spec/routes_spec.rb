@@ -63,4 +63,41 @@ describe 'Application' do
       expect(last_response.body).to include 'This name is already taken.'
     end
   end
+
+  describe 'The user account page' do
+    it 'can be accessed by a logged in user' do
+      get '/user-account', {}, as_user('elaine')
+      expect(last_response).to be_ok
+    end
+
+    it 'cannot be accessed by the guest user' do
+      get '/user-account'
+      expect(last_response.status).to eq(403)
+    end
+
+    context 'if authentication succeeded' do
+      it 'allows the user to delete the account' do
+        fail
+        # as a result, the user browses as guest again
+      end
+
+      it 'allows the user to change the password' do
+        fail
+      end
+
+      it 'unless the new password entries do not match' do
+        fail
+      end
+    end
+
+    context 'if authentication failed' do
+      it 'does not allow the user to delete the account' do
+        fail
+      end
+
+      it 'does not allow the user to change the password' do
+        fail
+      end
+    end
+  end
 end
