@@ -20,7 +20,7 @@ module RSpecMixin
   end
 
   def as_user(name)
-    { 'rack.session' => { :user => name } }
+    { 'rack.session' => { user: name } }
   end
 
   DIR = File.expand_path(File.dirname(__FILE__))

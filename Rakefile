@@ -10,4 +10,4 @@ task rackup: :dotenv do
   system('rackup')
 end
 
-task :default => ['rackup']
+task default: ['rackup']

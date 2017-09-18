@@ -7,9 +7,9 @@ require 'sysrandom/securerandom'
 
 require_relative 'lib/users'
 
-USERS = File.expand_path(File.dirname(__FILE__)) +
-        (test? ? '/spec' : '/lib') +
-        '/data/users.json'
+SOURCES = test? ? '/spec' : '/lib'
+HERE    = File.expand_path(File.dirname(__FILE__))
+USERS   = HERE + SOURCES + '/data/users.json'
 
 configure do
   enable :sessions
@@ -36,18 +36,11 @@ get '/sign-in' do
 end
 
 post '/sign-in' do
-  begin
-    username = params['username']
-    password = params['password']
+  username = params['username']
+  password = params['password']
 
-    @users.authenticate! username, password
-
+  after_authentification_of(username, password, :signin) do
     welcome username
-
-  rescue Polly::Users::UserNotFound
-    deny :signin, 'Cannot find a user with this name.'
-  rescue Polly::User::AuthenticationFailure
-    deny :signin, 'The password you entered is incorrect.'
   end
 end
 
@@ -66,8 +59,12 @@ post '/sign-up' do
 
     welcome username
 
+  rescue Polly::Users::NameEmpty
+    deny :signup, 'The user name cannot be empty.'
+  rescue Polly::Users::PasswordEmpty
+    deny :signup, 'The password cannot be empty.'
   rescue Polly::Users::NameAlreadyTaken
-    deny :signup, 'This name is already taken.'
+    deny :signup, 'Sorry, this user name is already taken.'
   end
 end
 
@@ -80,37 +77,31 @@ get '/user-account' do
 end
 
 post '/user-account/reset-password' do
-  begin
-    username     = params['username']
-    old_password = params['old_password']
-    new_password = params['new_password']
+  username              = params['username']
+  old_password          = params['old_password']
+  new_password          = params['new_password']
+  new_password_repeated = params['new_password_repeated']
 
-    @users.authenticate! username, old_password
-
-    if new_password != params['new_password_repeated']
+  after_authentification_of(username, old_password, :useraccount) do
+    user = @users.fetch username
+    begin
+      user.update_password(new_password, new_password_repeated)
+      render_with_message :useraccount, 'Successfully updated password.'
+    rescue Polly::Users::PasswordEmpty
+      render_with_message :useraccount, 'The new password cannot be empty.'
+    rescue Polly::Users::PasswordDoesntMatch
       render_with_message :useraccount, "Your entries for the new password don't match."
     end
-
-    @users.fetch(username).update_password(new_password)
-    render_with_message :useraccount, 'Successfully updated password.'
-
-  rescue RuntimeError
-    deny :useraccount, 'Authentication failed.'
   end
 end
 
 post '/user-account/delete' do
-  begin
-    username = params['username']
-    password = params['password']
+  username = params['username']
+  password = params['password']
 
-    @users.authenticate! username, password
+  after_authentification_of(username, password, :useraccount) do
     @users.delete! username
-
-    redirect_with_message '/', "Delete user account for '#{username}'."
-
-  rescue RuntimeError
-    deny :useraccount, 'Authentication failed.'
+    redirect_with_message '/', "Deleted user account of '#{username}'."
   end
 end
 
@@ -124,11 +115,22 @@ end
 
 private
 
+def after_authentification_of(username, password, template)
+  @users.authenticate! username, password
+
+  yield if block_given?
+
+rescue Polly::Users::UserNotFound
+  deny template, 'Cannot find a user with this name.'
+rescue Polly::User::AuthenticationFailure
+  deny template, 'The password you entered is incorrect.'
+end
+
 def restrict_to_signed_in_user
   deny 'You need to be signed in to do this.' unless @user.signed_in?
 end
 
-def deny(template=:index, message)
+def deny(template = :index, message)
   session[:flash] = message
   halt 403, haml(template)
 end

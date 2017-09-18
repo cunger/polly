@@ -2,20 +2,20 @@ ruby '2.4.1'
 
 source 'https://rubygems.org'
 
+gem 'bcrypt'
+gem 'dotenv'
+gem 'haml'
+gem 'json'
 gem 'rake'
 gem 'sinatra'
-gem 'haml'
-gem 'dotenv'
 gem 'sysrandom'
-gem 'bcrypt'
-gem 'json'
 
 group :development do
   gem 'sinatra-contrib'
 end
 
 group :test do
+  gem 'rack-test'
   gem 'rspec'
   gem 'simplecov'
-  gem 'rack-test'
 end

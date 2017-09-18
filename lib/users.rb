@@ -9,6 +9,8 @@ module Polly
     end
 
     def add!(username, password)
+      raise NameEmpty        if username.strip.empty?
+      raise PasswordEmpty    if password.strip.empty?
       raise NameAlreadyTaken if already_taken? username
 
       @users << Polly::User.create(username, password)
@@ -31,8 +33,11 @@ module Polly
       block_given? ? yield : raise(UserNotFound, username)
     end
 
-    class UserNotFound < RuntimeError ; end
-    class NameAlreadyTaken < RuntimeError ; end
+    class UserNotFound        < RuntimeError; end
+    class NameEmpty           < RuntimeError; end
+    class PasswordEmpty       < RuntimeError; end
+    class PasswordDoesntMatch < RuntimeError; end
+    class NameAlreadyTaken    < RuntimeError; end
 
     private
 

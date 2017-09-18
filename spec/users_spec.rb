@@ -8,6 +8,7 @@ describe Polly::Users do
   before do
     @users = Polly::Users.new(Polly::JSONUserStorage.new(users_json))
   end
+  
   after do
     restore_users_json!
   end

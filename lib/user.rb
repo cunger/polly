@@ -10,11 +10,11 @@ module Polly
     end
 
     def self.create(name, password)
-      self.new(name, BCrypt::Password.create(password))
+      new(name, BCrypt::Password.create(password))
     end
 
     def self.load(name, password)
-      self.new(name, BCrypt::Password.new(password))
+      new(name, BCrypt::Password.new(password))
     end
 
     def signed_in?
@@ -26,11 +26,14 @@ module Polly
       true
     end
 
-    def update_password(new_password)
+    def update_password(new_password, new_password_repeated)
+      raise Polly::Users::PasswordEmpty       if new_password.strip.empty?
+      raise Polly::Users::PasswordDoesntMatch if new_password != new_password_repeated
+
       @password = BCrypt::Password.create new_password
     end
 
-    class AuthenticationFailure < RuntimeError ; end
+    class AuthenticationFailure < RuntimeError; end
   end
 
   class GuestUser
