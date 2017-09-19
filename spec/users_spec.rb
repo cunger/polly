@@ -8,7 +8,7 @@ describe Polly::Users do
   before do
     @users = Polly::Users.new(Polly::JSONUserStorage.new(users_json))
   end
-  
+
   after do
     restore_users_json!
   end
@@ -18,8 +18,12 @@ describe Polly::Users do
     expect(elaine.name).to eq 'elaine'
   end
 
-  it 'can authenticate the test user' do
+  it 'authenticates the test user' do
     @users.authenticate! 'elaine', 'marley'
+  end
+
+  it 'does not authenticate a user with the wrong password' do
+    expect { @users.authenticate! 'elaine', 'threepwood' }.to raise_error(Polly::Users::AuthenticationFailure)
   end
 
   it 'can add and authenticate a new user' do
@@ -40,10 +44,6 @@ describe Polly::User do
 
   it 'is signed in' do
     expect @user.signed_in?
-  end
-
-  it 'needs the correct password to authenticate' do
-    expect @user.authenticate!('threepwood')
   end
 end
 

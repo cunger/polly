@@ -1,3 +1,13 @@
+# Polly is a simple Sinatra app for database-free user management.
+# It allows a user to sign up, sign in, change the password, and
+# delete the account.
+# It stores user information in a JSON file, but the storage
+# can relatively easily be swapped for something else.
+#
+# This is an exercise project, not meant for production.
+#
+# Author: Christina Unger
+
 require 'dotenv'
 Dotenv.load
 
@@ -122,7 +132,7 @@ def after_authentification_of(username, password, template)
 
 rescue Polly::Users::UserNotFound
   deny template, 'Cannot find a user with this name.'
-rescue Polly::User::AuthenticationFailure
+rescue Polly::Users::AuthenticationFailure
   deny template, 'The password you entered is incorrect.'
 end
 

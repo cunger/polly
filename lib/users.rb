@@ -2,6 +2,12 @@ require 'json'
 require_relative 'user'
 
 module Polly
+
+  # A collection of users. It can authenticate, add and delete users,
+  # as well as fetch a particular user based on the user name.
+  # Requires a user storage, from which it can load the user information
+  # and to which it can save it after making changes.
+
   class Users
     def initialize(user_storage)
       @store = user_storage
@@ -22,8 +28,9 @@ module Polly
       save!
     end
 
-    def authenticate!(username, password)
-      fetch(username).authenticate! password
+    def authenticate!(username, alleged_password)
+      user = fetch username
+      raise AuthenticationFailure unless user.password == alleged_password
     end
 
     def fetch(username)
@@ -33,11 +40,12 @@ module Polly
       block_given? ? yield : raise(UserNotFound, username)
     end
 
-    class UserNotFound        < RuntimeError; end
-    class NameEmpty           < RuntimeError; end
-    class PasswordEmpty       < RuntimeError; end
-    class PasswordDoesntMatch < RuntimeError; end
-    class NameAlreadyTaken    < RuntimeError; end
+    class UserNotFound          < RuntimeError; end
+    class NameEmpty             < RuntimeError; end
+    class PasswordEmpty         < RuntimeError; end
+    class PasswordDoesntMatch   < RuntimeError; end
+    class NameAlreadyTaken      < RuntimeError; end
+    class AuthenticationFailure < RuntimeError; end
 
     private
 
@@ -49,6 +57,8 @@ module Polly
       @store.save! @users
     end
   end
+
+  # User storage that saves and loads user names and passwords in a JSON file.
 
   class JSONUserStorage
     def initialize(file)
