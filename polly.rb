@@ -54,6 +54,13 @@ post '/sign-in' do
   end
 end
 
+# Log out
+
+get '/log-out' do
+  session.clear
+  redirect '/'
+end
+
 # Sign up
 
 get '/sign-up' do

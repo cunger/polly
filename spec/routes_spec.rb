@@ -57,6 +57,21 @@ describe 'Application' do
     end
   end
 
+  describe 'The log-out page' do
+    it 'is available' do
+      get '/log-out'
+      follow_redirect!
+      expect(last_response).to be_ok
+    end
+
+    it 'logs out the user' do
+      get '/log-out', {}, as_user('elaine')
+      follow_redirect!
+      expect(last_response).to be_ok
+      expect(last_response.body).to include "You're browsing as: guest"
+    end
+  end
+
   describe 'The sign-up page' do
     it 'is available' do
       get '/sign-up'
