@@ -32,14 +32,14 @@ describe 'Application' do
     end
   end
 
-  describe 'The sign-in page' do
+  describe 'The log-in route' do
     it 'is available' do
-      get '/sign-in'
+      get '/log-in'
       expect(last_response).to be_ok
     end
 
-    it 'signs in the user' do
-      post '/sign-in', ELAINE
+    it 'logs in the user' do
+      post '/log-in', ELAINE
       follow_redirect!
       expect(last_response).to be_ok
       expect(last_response.body).to include "Welcome, elaine!"
@@ -47,17 +47,17 @@ describe 'Application' do
     end
 
     it 'does not succeed if the user name does not exist' do
-      post '/sign-in', ELAINE_WITH_WRONG_USERNAME
+      post '/log-in', ELAINE_WITH_WRONG_USERNAME
       expect(last_response.body).to include 'Cannot find a user with this name.'
     end
 
     it 'does not succeed if the password is wrong' do
-      post '/user-account/delete', ELAINE_WITH_WRONG_PASSWORD
+      post '/log-in', ELAINE_WITH_WRONG_PASSWORD
       expect(last_response.body).to include 'The password you entered is incorrect.'
     end
   end
 
-  describe 'The log-out page' do
+  describe 'The log-out route' do
     it 'is available' do
       get '/log-out'
       follow_redirect!
@@ -99,6 +99,14 @@ describe 'Application' do
     it 'does not succeed if the user name is already taken' do
       post '/sign-up', ELAINE
       expect(last_response.body).to include 'Sorry, this user name is already taken.'
+    end
+
+    it 'sanitizes the user name' do
+      post '/sign-up', LECHUCK
+      follow_redirect!
+      expect(last_response.body).not_to include "<script>somethingEvil()</script>"
+      expect(last_response.body).to include "Welcome, &lt;script&gt;somethingEvil();&lt;&#x2F;script&gt;!"
+      expect(last_response.body).to include "You're browsing as: &lt;script&gt;somethingEvil();&lt;&#x2F;script&gt;"
     end
   end
 
@@ -158,6 +166,7 @@ describe 'Application' do
 
   ELAINE   = { 'username' => 'elaine',   'password' => 'marley' }
   GUYBRUSH = { 'username' => 'guybrush', 'password' => 'threepwood' }
+  LECHUCK  = { 'username' => '<script>somethingEvil();</script>', 'password' => 'lechuck' }
 
   ELAINE_WITH_WRONG_USERNAME = { 'username' => 'elain',  'password' => 'marley' }
   ELAINE_WITH_WRONG_PASSWORD = { 'username' => 'elaine', 'password' => 'threepwood' }

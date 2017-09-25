@@ -1,6 +1,6 @@
 # Polly is a simple Sinatra app for database-free user management.
-# It allows a user to sign up, sign in, change the password, and
-# delete the account.
+# It allows a user to sign up, log in, log out, change the password,
+# and delete the account.
 # It stores user information in a JSON file, but the storage
 # can relatively easily be swapped for something else.
 #
@@ -41,15 +41,15 @@ end
 
 # Sign in
 
-get '/sign-in' do
-  haml :signin
+get '/log-in' do
+  haml :login
 end
 
-post '/sign-in' do
+post '/log-in' do
   username = params['username']
   password = params['password']
 
-  after_authentification_of(username, password, :signin) do
+  after_authentification_of(username, password, :login) do
     welcome username
   end
 end
@@ -88,7 +88,7 @@ end
 # User account
 
 get '/user-account' do
-  restrict_to_signed_in_user
+  restrict_to_logged_in_user
 
   haml :useraccount
 end
@@ -128,6 +128,10 @@ helpers do
   def current_flash_message
     session.delete(:flash) || ''
   end
+
+  def sanitize(content)
+    Rack::Utils.escape_html content
+  end
 end
 
 private
@@ -143,7 +147,7 @@ rescue Polly::Users::AuthenticationFailure
   deny template, 'The password you entered is incorrect.'
 end
 
-def restrict_to_signed_in_user
+def restrict_to_logged_in_user
   deny 'You need to be signed in to do this.' unless @user.signed_in?
 end
 
@@ -154,7 +158,7 @@ end
 
 def welcome(username)
   session[:user] = username
-  redirect_with_message '/', "Welcome, #{username}!"
+  redirect_with_message '/', "Welcome, #{sanitize(username)}!"
 end
 
 def redirect_with_message(path, message)
